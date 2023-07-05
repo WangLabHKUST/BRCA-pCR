@@ -10,8 +10,6 @@ This github repository contains the codes for data analysis. The scripts are org
 
 4. transcriptome: related to Figure 4
 
-5. proteome: related to Figure 4
+5. proteome: related to Figure 5
 
-6. network: related to Figure 5
-
-7. machine_learning: related to Figure 6
+6. machine_learning: related to Figure 6
