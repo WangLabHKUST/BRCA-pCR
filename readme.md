@@ -1,8 +1,6 @@
 # Subtype-specific multi-omics predictors of clinical outcomes after neoadjuvant treatment in breast cancer
 
-This github repository contains the codes for data analysis. For the codes for the online predictor, please visit: https://github.com/zzhuay/online_predictor_response.
-
-The scripts are organised into seven folders:
+This github repository contains the codes for data analysis. The scripts are organised into seven folders:
 
 1. clinical: related to Figure 1
 
