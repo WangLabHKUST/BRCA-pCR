@@ -8,48 +8,26 @@ library("EnvStats")
 #################################################################################
 ## gene level log2ratio from the somatic segment file (annotated using Funcotator)
 #################################################################################
-codingGene = read.table("./data/Coding.gene.list.txt")
+codingGene = read.table("../data/Coding.gene.list.txt")
 codingGene = codingGene$V1
 
-### 这个是我call的结果
-facets_seg = fread("./data/BRCA_hg38.funcotator.anno.seg")
-facets_seg$seg = str_split_fixed(facets_seg$seg,"-VS-",2)[,1]
 
-facets_seg.k<- facets_seg[facets_seg$gene %in% codingGene,]
-facets_seg.k$cnlr.median = round(facets_seg.k$cnlr.median,3)
-facets_seg.k$seg_length = as.numeric(facets_seg.k$end)-as.numeric(facets_seg.k$start)
-facets_seg.k$length_X_mean = as.numeric(facets_seg.k$cnlr.median)*as.numeric(facets_seg.k$seg_length)
+log2ratio2 = as.data.frame(fread("../data/table.1-2.gene.level.cnlr.clean.matrix.txt"))
+rownames(log2ratio2) = log2ratio2$V1
+log2ratio2 = as.data.frame(t(log2ratio2[,-1]))
+log2ratio2[1:10,1:10]
+# dim(log2ratio_dat)
 
 
-facets_seg.k.dat = reshape2::dcast(facets_seg.k,seg~gene,value.var = "length_X_mean",sum)
-dim(facets_seg.k.dat)
-facets_seg.k.dat[1:10,1:10]
-
-facets_seg.k.dat_melt = reshape2::melt(facets_seg.k.dat)
-facets_seg.k.dat_melt$key = paste(facets_seg.k.dat_melt$seg,facets_seg.k.dat_melt$variable,sep = "_")
-colnames(facets_seg.k.dat_melt)[3] = "length_X_mean"
-
-facets_seg.k.dat_length = reshape2::dcast(facets_seg.k,seg~gene,value.var = "seg_length",sum)
-facets_seg.k.dat_length_melt = reshape2::melt(facets_seg.k.dat_length)
-facets_seg.k.dat_length_melt$key = paste(facets_seg.k.dat_length_melt$seg,facets_seg.k.dat_length_melt$variable,sep = "_")
-head(facets_seg.k.dat_length_melt)
-colnames(facets_seg.k.dat_length_melt)[3] = "seg_length"
-
-
-final_dat2 = merge(facets_seg.k.dat_melt,facets_seg.k.dat_length_melt,by="key")
-head(final_dat2)
-final_dat2$final_seg_mean = final_dat2$length_X_mean/final_dat2$seg_length
-final_dat2 = final_dat2[final_dat2$seg_length!=0,]
-dim(final_dat2)
-
-log2ratio2 = as.data.frame(reshape2::dcast(final_dat2,variable.x~seg.x,value.var = "final_seg_mean"))
-samplenum = ncol(log2ratio2)-1
+# log2ratio2 = as.data.frame(reshape2::dcast(final_dat2,variable.x~seg.x,value.var = "final_seg_mean"))
+samplenum = ncol(log2ratio2)#-1
 callrate = rowSums(!is.na(log2ratio2[,-1]))/samplenum
 log2ratio_dat = log2ratio2[callrate > 0.8,]
-rownames(log2ratio_dat) = log2ratio_dat$variable.x
+#rownames(log2ratio_dat) = log2ratio_dat$variable.x
 log2ratio_dat = as.data.frame(t(log2ratio_dat[,-1]))
 log2ratio_dat[1:10,1:10]
 dim(log2ratio_dat)
+
 
 
 
@@ -62,7 +40,7 @@ for (i in 1:length(group_list)){
     group_list.tmp = group_list[i]
     type_list.tmp = type_list[j]
     
-    amp = fread(paste("./data/GISTIC2_bySubtype_byPCR/",group_list.tmp,"/",type_list.tmp,"_genes.conf_90.txt",sep = ""),header = T)
+    amp = fread(paste("../data/GISTIC2_bySubtype_byPCR/hg19_",group_list.tmp,"/",type_list.tmp,"_genes.conf_90.txt",sep = ""),header = T)
     amp = as.data.frame(amp[-c(1,2,3),-1])
     amp = amp[,-ncol(amp)]
     amp$Gene = "Gene"
@@ -80,7 +58,7 @@ unique(Final_gene.keep$cytoband)
 
 
 
-mapping_dat = fread("./data/GISTIC2_bySubtype_byPCR/ER-HER2-_0/all_data_by_genes.txt")[,c(1,3)]
+mapping_dat = fread("../data/GISTIC2_bySubtype_byPCR/hg19_ER-HER2-_0/all_data_by_genes.txt")[,c(1,3)]
 colnames(mapping_dat) = c("geneid","cytoband")
 mapping_dat$geneid = str_split_fixed(mapping_dat$geneid,"[|]",2)[,1]
 mapping_dat = mapping_dat[mapping_dat$cytoband %in% unique(Final_gene.keep$cytoband),]
@@ -136,7 +114,7 @@ subtypes = c("ER-HER2+","ER-HER2-","ER+HER2+")
 res_dat = c()
 for (k in 1:length(subtypes)){
   subtype.tmp = subtypes[k]
-  clinical = fread("./data/clinical.txt")
+  clinical = fread("../data/clinical.txt")
   clinical.sub = clinical[clinical$WES!="" & !is.na(clinical$Purity),]
   
   clinical.sub = clinical.sub[clinical.sub$subtype==subtype.tmp,]
@@ -167,15 +145,16 @@ for (k in 1:length(subtypes)){
 
 res_dat = res_dat[order(res_dat$p),]
 head(res_dat,10)
+dim(res_dat)
 
 
-
-clinical = fread("./data/clinical.txt")
+clinical = fread("../data/clinical.txt")
 clinical.sub = clinical[clinical$WES!="" & !is.na(clinical$Purity),]
 clinical.sub = clinical.sub[clinical.sub$subtype=="ER-HER2-",]
 dim(clinical.sub)
 mapping = clinical.sub[,c("SampleID","pCR_consensus","Purity","subtype")]
 colnames(mapping)[2] = "pCR"
+
 
 sum_dat.o.tmp = as.data.frame(sum_dat.o)
 rownames(sum_dat.o.tmp) = sum_dat.o.tmp$cytoband
@@ -193,6 +172,3 @@ p
 pdf("Figure.2E.6q27.pdf",width = 4,height = 4)
 plot(p)
 dev.off()
-
-
-
